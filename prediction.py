@@ -277,6 +277,7 @@ def predict_from_table(table_file, model, model_specs, data_specs, output_folder
             predictions, fps = predict_video(model, data_specs, video_path, crop_specs, row['Animal ID'], row['Scoring Start (min)'], row['Scoring End (min)'])
             # all_predictions[ind] = predictions
             clip_length = row['Scoring End (min)'] - row['Scoring Start (min)']
+            os.makedirs(os.path.join(output_folder, 'predictions'), exist_ok=True)
             pred_file = os.path.join(output_folder,'predictions', row['File Name']+ '_'+ str(row['Subject #']) + '.pkl')
 
             with open(pred_file, 'wb') as pf:

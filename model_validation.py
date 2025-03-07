@@ -7,6 +7,7 @@ from ast import literal_eval
 import cv2
 import os
 import pickle
+import datetime
 
 ## currently only works with binary labels - need to adapt for more
 
@@ -265,25 +266,43 @@ def calculate_validation_ann_csv(csv_filename, validation_folder, save_folder, n
 
     return scored_df
 
-def validate_model(model, model_specs, data_specs, validation_folder, save_folder):
+def validate_model(model, model_specs, data_specs, validation_folder, save_folder, save = True):
    
-    csvs = [x for x in os.listdir(validation_folder) if 'ann' not in x.lower()]
+    if save_folder is None:
+        parent_folder = os.path.dirname(model_specs['checkpoint_dir'])
+        model = os.path.basename(parent_folder)
+        os.makedirs(os.path.join(parent_folder, model + '_validations'), exist_ok = True)
+        day = datetime.now().strftime("%m%d%y")
+        if os.path.exists(os.path.join(parent_folder, model + '_validations', model + '_validation_'+ day)):
+            day_with_time = datetime.now().strftime("%m%d%y_%H%M")
+            save_folder = os.path.join(parent_folder, model + '_validations', model + '_validation_'+ day_with_time)
+        else:
+            save_folder = os.path.join(parent_folder, model + '_validations', model + '_validation_'+ day)
+    
+        os.makedirs(save_folder, exist_ok = True)
+
+    csvs = [x for x in os.listdir(validation_folder) if 'ann' not in x.lower() and '.DS' not in x and 'Validated' not in x]
     all_scores = []
     for c in csvs:
         output = predict_from_table(os.path.join(validation_folder, c), model, model_specs, data_specs, save_folder, timed = True)
         scored = pd.read_csv(output)
         scored, scores = calculate_validation_csv_metrics(scored)
-        scored.write_csv(output)
+        scored.to_csv(output)
         all_scores.append(scores)
-    
-    ann = [x for x in os.listdir(validation_folder) if 'ann' in x.lower()]
+
+    ann = [x for x in os.listdir(validation_folder) if 'ann' in x.lower() and '.DS' not in x and 'Validated' not in x]
     all_ann_scores = []
     for a in ann:
         ann_score  = calculate_validation_ann_csv(os.path.join(validation_folder, a), validation_folder, save_folder, data_specs['num_frames'])
         all_ann_scores.append(ann_score)
-    
+   
+   
     final_ann_scores = pd.concat(all_ann_scores)
     final_manual_scores = pd.DataFrame(all_scores)
+
+    if save:
+        final_manual_scores.to_csv(os.path.join(save_folder, 'manual_scores.csv'))
+        final_ann_scores.to_csv(os.path.join(save_folder, 'ann_scores.csv'))
 
     return final_ann_scores, final_manual_scores
         
