@@ -1,0 +1,8 @@
+imageio==2.34.1
+numpy==2.2.4
+opencv_python_headless==4.9.0.80
+pandas==2.2.3
+tensorflow==2.16.1
+tensorflow_docs==2024.5.3.31743
+tf_keras==2.16.0
+tf_models_no_deps==2.16.0
