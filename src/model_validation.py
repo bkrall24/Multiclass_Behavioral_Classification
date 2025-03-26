@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import random
 from video_preprocessing import get_params_from_vid, padcrop_image, frame_crop
-from src.prediction import predict_from_table, load_experiment_table
+from prediction import predict_from_table, load_experiment_table
 from ast import literal_eval
 import cv2
 import os
