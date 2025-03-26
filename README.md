@@ -4,7 +4,7 @@ Multiclass behavioral classification is a project to automatically quantify spec
 
 ## Usage
 
-Multiple modules for distinct portions of the training, prediction, and evaluation of new models
+Multiple modules for training, prediction, and evaluation of new models
 
 ### dataset_generation
 Create a tensorflow dataset for training, some overlap with training_models
