@@ -1,7 +1,6 @@
 ## dealing with annotations or via or whatever
 import cv2
 import os
-
 from video_preprocessing import *
 
 def read_temporal_annotations(annotation_file, fps = 30, skiprows = 1):

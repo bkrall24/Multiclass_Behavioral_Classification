@@ -12,12 +12,15 @@ import datetime
 ## currently only works with binary labels - need to adapt for more
 
 def rolling_analysis(logits, window):
+    """ Calculate a rolling average and count for the predictions. Used to determine clips 
+        to sample for manual validation"""
     avg = np.array([np.sum(logits[i:i+window])/window for i in range(len(logits-window))])
     counts = np.array([np.sum(logits[i:i+window] < 0)/window for i in range(len(logits-window))])
 
     return avg, counts
     
 def find_starts_by_confidence(logits, window):
+    """ Determines start index to sample clips for validation"""
     avg, counts = rolling_analysis(logits, window)
     off = np.mean(logits[logits > 0])
     on = np.mean(logits[logits < 0])
@@ -41,6 +44,7 @@ def find_starts_by_confidence(logits, window):
     return starts
 
 def find_starts_bins(logits, window, bins = 10):
+    """ Pulls starts for clips """
     avg, counts = rolling_analysis(logits, window)
     num, edges = np.histogram(avg, bins = bins)
 
@@ -52,6 +56,7 @@ def find_starts_bins(logits, window, bins = 10):
     return starts, num
 
 def grab_clip_with_annotation(cap, start, window, logits, prediction_frames, center, buffer, frame_delay, add_text = True):
+    """ Function that uses prediction, starts and length to return clips """
     clip_logits = logits[start:start+window]
     frame_start = int(start * prediction_frames) + frame_delay
 
@@ -72,6 +77,7 @@ def grab_clip_with_annotation(cap, start, window, logits, prediction_frames, cen
     return clip
 
 def show_clip_grab_input(clip, labels, clip_name, delay = 10):
+    """ Shows a clip via cv2 and grabs user input"""
     replay = True
     ind_choice = None
     while replay:
@@ -91,7 +97,10 @@ def show_clip_grab_input(clip, labels, clip_name, delay = 10):
     return ind_choice
 
 def validate_prediction(video_path, animal, logits, prediction_frames, window, delay_start = 0, num_clips = 10, bins = 10, labels = ['Not scratch', 'scratch', 'mixed'], show_label = False):
-    
+    """ Parent function that takes video, animal id and prediction to choose and present clips for 
+        manual validation of model scoring. 
+    """
+
     # Determine necessary parameters to get appropriate video clips
     circles, vid_frames, fps, _ = get_params_from_vid(video_path)
     frame_delay = delay_start * 60 * fps
@@ -177,6 +186,9 @@ def validate_prediction(video_path, animal, logits, prediction_frames, window, d
     return user_labled_clips, percent_presumed_wrong, percent_wrong
 
 def write_clip(clip, save_path, fps, size):
+    
+    """ Writes clip to folder, for augmenting training set"""
+
     out = cv2.VideoWriter(save_path, cv2.VideoWriter_fourcc(*'mp4v'), fps, size)
     for frame in clip:
         out.write(frame)
@@ -184,7 +196,8 @@ def write_clip(clip, save_path, fps, size):
     print(f'Saved: {save_path}')
 
 def calculate_validation_csv_metrics(scored):
-
+    """ Uses output of predict_from_table on a set validation table to generate scores
+    """
     scores = {}
     num_bins = max([int(x.split('Bin ')[-1]) for x in scored.columns if ': Bin' in x])
     for x in range(num_bins):
@@ -223,6 +236,7 @@ def calculate_validation_csv_metrics(scored):
     return scored, scores
 
 def calculate_validation_ann_csv(csv_filename, validation_folder, save_folder, num_frames, save = False):
+    """ Uses videos not in dataset to test model """
     df, meta = load_experiment_table(csv_filename)
 
     prediction_folder = os.path.join(save_folder, 'predictions')
@@ -267,7 +281,7 @@ def calculate_validation_ann_csv(csv_filename, validation_folder, save_folder, n
     return scored_df
 
 def validate_model(model, model_specs, data_specs, validation_folder, save_folder, save = True):
-   
+    """ Full validation of a model on standard validation dataset"""
     if save_folder is None:
         parent_folder = os.path.dirname(model_specs['checkpoint_dir'])
         model = os.path.basename(parent_folder)

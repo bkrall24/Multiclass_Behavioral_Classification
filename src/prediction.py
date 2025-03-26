@@ -11,6 +11,7 @@ import tensorflow as tf, tf_keras
 # Create a dataset generator designed for our videos
 # Just for a single animal - might want to edit to be able to cut all the animals from a six animal video
 class PredictClipGenerator:
+    """ Generator for pulling frames from videos to predict"""
     def __init__(self, video_path, data_specs, crop_specs, animal_choice = 'm1', start = 0, stop = None):
         """ Returns a set of frames with their associated label. 
 
@@ -70,7 +71,7 @@ class PredictClipGenerator:
 # takes a loaded model and affiliated data_specs, a video and its crop_specs, and details about the animal
 # and generates predictions
 def predict_video(model, data_specs, video_path, crop_specs, animal, start, stop):
-    
+    """ Predicts from the video using the model"""
     data = PredictClipGenerator(video_path, data_specs, crop_specs, animal, start, stop)
     fps = data.fps
     predict_data = tf.data.Dataset.from_generator(data, output_signature = (tf.TensorSpec(shape = (None, None, None, None, 3), dtype = tf.float32)))
@@ -110,7 +111,9 @@ def boolean_to_annotations(y, predict_frames, fps):
 # takes annotations (output of boolean to annotations) and determines duration
 # and number of bouts of behavior in bins
 def bin_annotations(anns, start = 0, length = 30, bin_size = 5):
-    
+    """ Takes annotations (i.e. start stop of behavior) and generates list
+        of behavior bouts and duration in a given bin (defaults to 5 min bin)
+    """
     n_bins = int(length/bin_size)
     all_bouts = []
     all_durations = []
@@ -143,7 +146,7 @@ def bin_annotations(anns, start = 0, length = 30, bin_size = 5):
 # ann_dict: keys are either behavior names (scratch, shake) with corresponding annotations (from boolean_to_annotation)
 #   or keys are animal names with corresponding single behaviors (i.e m1, m2 but all containing scratching annotations)
 def generate_random_key(exceptions =[]):
-
+    """ random key to create a JSON for VIA annotation software"""
     characters = string.ascii_letters + string.digits
     unique = False
 
@@ -154,7 +157,7 @@ def generate_random_key(exceptions =[]):
     return gen_string
 
 def format_via_annotation(ann_dict):
-
+    """ Formats data into VIA JSON to review in VIA annotation software"""
     exceptions = []
     metadata = {}
     for animal in ann_dict:
@@ -216,7 +219,7 @@ def build_json_dict(fn, ann_dict, save_file):
 
 # load the template I designed for storing reference for a given experiment
 def load_experiment_table(table_file, header_size = 6):
-
+    """ Loads data from template for a given project"""
     ext = os.path.splitext(table_file)[1]
     if ext == '.csv':
         header = pd.read_csv(table_file, nrows = header_size)
@@ -247,7 +250,7 @@ def load_experiment_table(table_file, header_size = 6):
     return tbl, metadata
 
 def predict_from_table(table_file, model, model_specs, data_specs, output_folder, header_size = 6, bin_size = 5, timed = False):
-
+    """ Generates prediction from a csv table"""
     tbl, metadata = load_experiment_table(table_file=table_file, header_size=header_size)
 
     columns = list(tbl.columns)
