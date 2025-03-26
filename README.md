@@ -1,6 +1,6 @@
 # Mulitclass Behavioral Classification
 
-Multiclass behavioral classification is a project to automatically quantify specific behaviors in videos using MoViNet models and Tensorflow. Currently designed to detect a single behavior with small adaptation needed to accomplish 'multiclass' goals. This project was designed with intent of determine duration, bouts, and timestamps for mouse behaviors in videos from experiments evaluating phenotypes.
+Multiclass behavioral classification is a project to automatically quantify specific behaviors in videos using MoViNet model architecture (https://arxiv.org/pdf/2103.11511). Currently designed to detect a single behavior with small adaptation needed to accomplish 'multiclass' goals. This project was designed with intent of determine duration, bouts, and timestamps for mouse behaviors in videos from experiments evaluating phenotypes.
 
 ## Usage
 
